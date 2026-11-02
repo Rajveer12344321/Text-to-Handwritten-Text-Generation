@@ -1,0 +1,24 @@
+name: Docs test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.0"
+          python-version: "3.14"
+          enable-cache: true
+      - name: Install dependencies
+        run: uv sync --frozen --group docs
+      - name: Try Docs build
+        run: uv run --frozen mkdocs build

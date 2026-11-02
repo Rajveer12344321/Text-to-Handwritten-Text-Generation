@@ -1,0 +1,51 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+
+  lint:
+      runs-on: ubuntu-latest
+
+      steps:
+        - name: Checkout full upstream repo
+          uses: actions/checkout@v4
+        - name: Set up uv
+          uses: astral-sh/setup-uv@v6
+          with:
+            version: "0.12.0"
+            python-version: "3.14"
+            enable-cache: true
+        - name: Install dependencies
+          run: uv sync --frozen
+        - name: Check formatting with Black
+          run: uv run --frozen black --check .
+
+  test:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout full upstream repo
+        uses: actions/checkout@v4
+      - name: Set up uv and Python 3.14
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.12.0"
+          python-version: "3.14"
+          enable-cache: true
+      - name: Install E2E dependencies (Linux)
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes fontforge potrace
+      - name: Verify E2E dependencies (Linux)
+        run: |
+          fontforge -lang=py -c 'import fontforge; print(fontforge.version())'
+          potrace --version
+      - name: Install Handwrite
+        run: uv sync --frozen --no-dev
+      - name: Test
+        run: uv run --frozen --no-dev python -m unittest discover
